@@ -14,6 +14,7 @@ set(ffmpeg_libs ${ffmpeg_dir}/lib/${ANDROID_ABI})
 
 include_directories(${ffmpeg_dir}/include/${ANDROID_ABI})
 
+# FFmpeg static libraries
 set(
         # List variable name
         ffmpeg_libs_names
@@ -23,13 +24,30 @@ set(
 foreach (ffmpeg_lib_name ${ffmpeg_libs_names})
     add_library(
             ${ffmpeg_lib_name}
-            SHARED
+            STATIC
             IMPORTED)
     set_target_properties(
             ${ffmpeg_lib_name}
             PROPERTIES
             IMPORTED_LOCATION
-            ${ffmpeg_libs}/lib${ffmpeg_lib_name}.so)
+            ${ffmpeg_libs}/lib${ffmpeg_lib_name}.a)
+endforeach ()
+
+# Dependency static libraries (libvpx for VP8/VP9, mbedtls for TLS)
+set(
+        dep_libs_names
+        vpx mbedtls mbedx509 mbedcrypto)
+
+foreach (dep_lib_name ${dep_libs_names})
+    add_library(
+            ${dep_lib_name}
+            STATIC
+            IMPORTED)
+    set_target_properties(
+            ${dep_lib_name}
+            PROPERTIES
+            IMPORTED_LOCATION
+            ${ffmpeg_libs}/lib${dep_lib_name}.a)
 endforeach ()
 
 add_library(${CMAKE_PROJECT_NAME} SHARED
@@ -45,4 +63,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         # List libraries link to the target library
         log
         android
-        ${ffmpeg_libs_names})
+        z
+        m
+        ${ffmpeg_libs_names}
+        ${dep_libs_names})

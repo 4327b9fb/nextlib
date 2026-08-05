@@ -97,11 +97,11 @@ function buildLibVpx() {
     # Set up environment variables
     case $ABI in
     armeabi-v7a)
-      EXTRA_BUILD_FLAGS="--force-target=armv7-android-gcc --disable-neon"
+      EXTRA_BUILD_FLAGS="--force-target=armv7-android-gcc --disable-neon --enable-pic"
       TOOLCHAIN=armv7a-linux-androideabi21-
       ;;
     arm64-v8a)
-      EXTRA_BUILD_FLAGS="--force-target=armv8-android-gcc"
+      EXTRA_BUILD_FLAGS="--force-target=armv8-android-gcc --enable-pic"
       TOOLCHAIN=aarch64-linux-android21-
       ;;
     x86)
@@ -239,8 +239,8 @@ function buildFfmpeg() {
       --extra-ldflags="$DEP_LD_FLAGS -Wl,-z,max-page-size=16384" \
       --pkg-config="$(which pkg-config)" \
       --target-os=android \
-      --enable-shared \
-      --disable-static \
+      --disable-shared \
+      --enable-static \
       --disable-doc \
       --disable-programs \
       --disable-everything \
@@ -271,7 +271,11 @@ function buildFfmpeg() {
 
     OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
     mkdir -p "${OUTPUT_LIB}"
-    cp "${BUILD_DIR}"/"${ABI}"/lib/*.so "${OUTPUT_LIB}"
+    cp "${BUILD_DIR}"/"${ABI}"/lib/*.a "${OUTPUT_LIB}"
+    # Copy dependency static libraries (libvpx, mbedtls) for static linking
+    if [ -d "${BUILD_DIR}/external/${ABI}/lib" ]; then
+      cp "${BUILD_DIR}"/external/"${ABI}"/lib/*.a "${OUTPUT_LIB}"
+    fi
 
     OUTPUT_HEADERS=${OUTPUT_DIR}/include/${ABI}
     mkdir -p "${OUTPUT_HEADERS}"
